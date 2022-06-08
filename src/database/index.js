@@ -6,7 +6,7 @@ dotenv.config({ path: './src/config/.env' });
 const user = process.env.USERNAME;
 const password = process.env.PASSWORD;
 const host = process.env.HOST;
-const port = process.env.PORT;
+const port = process.env.DB_PORT;
 const database = process.env.DBNAME;
 
 const { Pool } = pg;
