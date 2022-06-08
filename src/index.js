@@ -5,8 +5,7 @@ import chalk from 'chalk';
 
 import router from './routes/index.js';
 
-dotenv.config({ path: './config/.env' });
-
+dotenv.config({ path: './src/config/.env' });
 const app = express();
 
 app.use(cors());
