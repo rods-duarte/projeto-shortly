@@ -53,3 +53,40 @@ export async function getShortUrl(req, res) {
     });
   }
 }
+
+export async function openShortUrl(req, res) {
+  const { shortUrl } = req.params;
+
+  try {
+    const result = await db.query(
+      `--sql
+            SELECT url, visits FROM LINKS
+            WHERE code = $1
+          `,
+      [shortUrl]
+    );
+
+    if (!result.rows.length) {
+      res.status(404).send('Link not found');
+      return;
+    }
+    const { url, visits } = result.rows[0];
+
+    await db.query(
+      `--sql
+            UPDATE LINKS
+            SET visits = $1
+            WHERE code = $2
+        `,
+      [visits + 1, shortUrl]
+    );
+
+    res.redirect(url);
+    return;
+  } catch (err) {
+    res.status(500).send({
+      message: 'Internal error while trying to open link',
+      details: err,
+    });
+  }
+}

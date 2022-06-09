@@ -3,6 +3,7 @@ import { Router } from 'express';
 import {
   createShortenUrl,
   getShortUrl,
+  openShortUrl,
 } from '../controllers/linkController.js';
 // middlewares
 import { validateToken } from '../middlewares/jwtValidator.js';
@@ -19,4 +20,5 @@ linkRouter.post(
   createShortenUrl
 );
 linkRouter.get('/urls/:id', getShortUrl);
+linkRouter.get('/urls/open/:shortUrl', openShortUrl);
 export default linkRouter;
