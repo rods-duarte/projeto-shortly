@@ -23,6 +23,7 @@ export function compareTokenWithUserId(req, res, next) {
 
   if (id != userId) {
     res.status(404).send('Token id does not match the given id');
+    return;
   }
 
   next();
