@@ -90,3 +90,40 @@ export async function openShortUrl(req, res) {
     });
   }
 }
+
+export async function deleteShortenUrl(req, res) {
+  const { id } = req.params;
+  const { tokenData } = res.locals;
+
+  try {
+    const result = await db.query(
+      `--sql
+            SELECT "userId" FROM LINKS
+            WHERE id = $1
+      `,
+      [id]
+    );
+
+    if (!result.rows.length) {
+      res.status(404).send('Link not found');
+      return;
+    }
+
+    if (tokenData.userId !== result.rows[0].userId) {
+      res.status(401).send('Unauthorized');
+      return;
+    }
+
+    await db.query(
+      `--sql
+            DELETE FROM LINKS
+            WHERE id = $1
+        `,
+      [id]
+    );
+
+    res.sendStatus(204);
+  } catch (err) {
+    res.status(500).send('Internal error while trying to delete');
+  }
+}
