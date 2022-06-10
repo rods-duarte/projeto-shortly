@@ -14,5 +14,10 @@ app.use(router);
 
 const port = process.env.PORT || 4000;
 app.listen(port, () => {
-  console.log(chalk.bgGreen.bold(`Server is open and running on PORT ${port}`));
+  console.log(
+    chalk.yellow.bold(
+      `mode: ${process.env.MODE || 'not defined -> development'}`
+    )
+  );
+  console.log(chalk.green.bold(`Server is open and running on PORT ${port}`));
 });
