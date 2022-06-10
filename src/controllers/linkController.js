@@ -26,14 +26,14 @@ export async function getShortUrl(req, res) {
   try {
     const result = await linksRepository.getLinkById(id);
 
-    const urlObj = result.rows[0];
-    delete urlObj.visits;
-    delete urlObj.userId;
-
-    if (!urlObj) {
+    if (!result.rows.length) {
       res.status(404).send('shortened url not found');
       return;
     }
+
+    const urlObj = result.rows[0];
+    delete urlObj.visits;
+    delete urlObj.userId;
 
     res.status(200).send(urlObj);
   } catch (err) {
