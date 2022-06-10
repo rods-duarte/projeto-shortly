@@ -1,7 +1,12 @@
 import { Router } from 'express';
 
 // controllers
-import { signup, signin, getUser } from '../controllers/userController.js';
+import {
+  signup,
+  signin,
+  getUser,
+  getRanking,
+} from '../controllers/userController.js';
 
 // middlewares
 import { validateSchema } from '../middlewares/schemaValidator.js';
@@ -37,6 +42,6 @@ userRouter.get(
   compareTokenWithUserId,
   getUser
 );
-userRouter.get('/users/ranking');
+userRouter.get('/ranking', getRanking);
 
 export default userRouter;

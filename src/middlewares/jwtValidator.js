@@ -3,7 +3,7 @@ import dotenv from 'dotenv';
 
 dotenv.config({ path: './src/config/.env' });
 
-export async function validateToken(req, res, next) {
+export function validateToken(req, res, next) {
   const { authorization } = req.headers;
   const token = authorization?.replace('Bearer ', '').trim();
   const secretKey = process.env.SECRET_KEY;
@@ -17,7 +17,7 @@ export async function validateToken(req, res, next) {
   }
 }
 
-export async function compareTokenWithUserId(req, res, next) {
+export function compareTokenWithUserId(req, res, next) {
   const { id } = req.params;
   const { userId } = res.locals.tokenData;
 

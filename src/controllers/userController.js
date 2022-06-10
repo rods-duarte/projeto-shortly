@@ -96,3 +96,29 @@ export async function getUser(req, res) {
     res.status(500).send('Internal error while geting user data');
   }
 }
+
+export async function getRanking(req, res) {
+  try {
+    const result = await db.query(
+      `--sql
+        SELECT 
+          users.id,
+          users.name,
+          COUNT(links) AS "linksCount",
+          COALESCE(SUM(links.visits), 0) AS "visitCount"
+        FROM 
+          users
+        LEFT JOIN
+          links ON links."userId" = users.id
+        GROUP BY users.id
+        ORDER BY "visitCount" DESC
+        LIMIT 10
+      `
+    );
+
+    const ranking = result.rows;
+    res.status(200).send(ranking);
+  } catch (err) {
+    res.status(500).send('Internal error while trying to fetch the ranking');
+  }
+}
