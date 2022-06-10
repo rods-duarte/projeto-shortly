@@ -11,8 +11,18 @@ export async function validateToken(req, res, next) {
   try {
     const data = jwt.verify(token, secretKey);
     res.locals.tokenData = data;
+    next();
   } catch (e) {
     return res.status(401).send('Invalid token');
+  }
+}
+
+export async function compareTokenWithUserId(req, res, next) {
+  const { id } = req.params;
+  const { userId } = res.locals.tokenData;
+
+  if (id != userId) {
+    res.status(404).send('Token id does not match the given id');
   }
 
   next();

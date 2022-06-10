@@ -1,10 +1,18 @@
 import { Router } from 'express';
 
-import { signup, signin } from '../controllers/userController.js';
+// controllers
+import { signup, signin, getUser } from '../controllers/userController.js';
 
+// middlewares
 import { validateSchema } from '../middlewares/schemaValidator.js';
 import { checkDuplicateEmail } from '../middlewares/signUpValidator.js';
+import {
+  validateToken,
+  compareTokenWithUserId,
+} from '../middlewares/jwtValidator.js';
+import { findUser } from '../middlewares/userValidator.js';
 
+// schemas
 import SignUpSchema from '../models/signupSchema.js';
 import SignInSchema from '../models/signinSchema.js';
 
@@ -16,8 +24,19 @@ userRouter.post(
   checkDuplicateEmail,
   signup
 );
-userRouter.post('/signin', validateSchema(SignInSchema), signin);
-userRouter.get('users/:id');
-userRouter.get('users/ranking');
+userRouter.post(
+  '/signin',
+  validateSchema(SignInSchema),
+  findUser('body', 'email'),
+  signin
+);
+userRouter.get(
+  '/users/:id',
+  validateToken,
+  findUser('params', 'id'),
+  compareTokenWithUserId,
+  getUser
+);
+userRouter.get('/users/ranking');
 
 export default userRouter;

@@ -30,25 +30,11 @@ export async function signup(req, res) {
 
 export async function signin(req, res) {
   const { body } = req; // email, password
+  const { user } = res.locals;
+  delete user.email;
 
   try {
-    const user = await db.query(
-      `--sql
-        SELECT id, password FROM USERS
-        WHERE email = $1
-      `,
-      [body.email]
-    );
-
-    if (!user.rows.length) {
-      res.status(401).send('User not found');
-      return;
-    }
-
-    const validPassword = bcrypt.compareSync(
-      body.password,
-      user.rows[0].password
-    );
+    const validPassword = bcrypt.compareSync(body.password, user.password);
 
     if (!validPassword) {
       res.status(401).send('Invalid password');
@@ -56,18 +42,14 @@ export async function signin(req, res) {
     }
 
     const config = { expiresIn: 60 * 60 * 24 };
-    const token = jwt.sign(
-      { userId: user.rows[0].id },
-      process.env.SECRET_KEY,
-      config
-    );
+    const token = jwt.sign({ userId: user.id }, process.env.SECRET_KEY, config);
 
     await db.query(
       `--sql
           INSERT INTO SESSIONS ("userId", token)
           VALUES ($1, $2)
         `,
-      [user.rows[0].id, token]
+      [user.id, token]
     );
 
     res.status(200).send(token);
@@ -76,5 +58,41 @@ export async function signin(req, res) {
       message: 'Internal error while login',
       details: err,
     });
+  }
+}
+
+export async function getUser(req, res) {
+  const { id } = req.params;
+  const { user } = res.locals;
+  delete user.password;
+  delete user.email;
+
+  try {
+    const userData = { ...user };
+
+    const resultLinks = await db.query(
+      `--sql
+        SELECT
+          id,
+          url,
+          code AS "shortUrl", 
+          visits AS "visitCount"
+        FROM
+          links
+        WHERE "userId" = $1
+        ORDER BY id
+      `,
+      [id]
+    );
+
+    const shortenedUrls = resultLinks.rows;
+    const totalVisits = shortenedUrls.reduce(
+      (acc, elem) => acc + elem.visitCount,
+      0
+    );
+    const responseObj = { ...userData, visitCount: totalVisits, shortenedUrls };
+    res.status(200).send(responseObj);
+  } catch (err) {
+    res.status(500).send('Internal error while geting user data');
   }
 }
