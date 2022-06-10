@@ -20,7 +20,7 @@ async function getUserLinks(userId) {
 async function getLinkById(id) {
   return db.query(
     `--sql
-        SELECT id, userId, url, visits, code as "shortUrl" FROM LINKS
+        SELECT id, "userId", url, visits, code as "shortUrl" FROM LINKS
         WHERE id = $1
     `,
     [id]
@@ -30,7 +30,7 @@ async function getLinkById(id) {
 async function getLinkByCode(code) {
   return db.query(
     `--sql
-        SELECT id, userId, url, visits, code as "shortUrl" FROM LINKS
+        SELECT id, "userId", url, visits, code as "shortUrl" FROM LINKS
         WHERE code = $1
     `,
     [code]

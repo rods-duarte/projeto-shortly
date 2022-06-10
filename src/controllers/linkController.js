@@ -27,6 +27,8 @@ export async function getShortUrl(req, res) {
     const result = await linksRepository.getLinkById(id);
 
     const urlObj = result.rows[0];
+    delete urlObj.visits;
+    delete urlObj.userId;
 
     if (!urlObj) {
       res.status(404).send('shortened url not found');
@@ -70,7 +72,8 @@ export async function deleteShortenUrl(req, res) {
   const { tokenData } = res.locals;
 
   try {
-    const result = linksRepository.getLinkById(id); //! TALVEZ DE RUIM AQUI
+    const result = await linksRepository.getLinkById(id);
+    console.log(result);
 
     if (!result.rows.length) {
       res.status(404).send('Link not found');
