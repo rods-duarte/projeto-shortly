@@ -2,7 +2,8 @@ import bcrypt from 'bcrypt';
 import dotenv from 'dotenv';
 import jwt from 'jsonwebtoken';
 
-import db from '../database/index.js';
+import { userRepository } from '../repositories/userRepository.js';
+import { linksRepository } from '../repositories/linksRepository.js';
 
 dotenv.config({ path: './src/config/.env' });
 
@@ -11,14 +12,8 @@ export async function signup(req, res) {
 
   try {
     const cryptPass = bcrypt.hashSync(password, 10);
+    await userRepository.createUser(name, email, cryptPass);
 
-    await db.query(
-      `--sql
-            INSERT INTO users (name, email, password)
-            VALUES ($1, $2, $3)
-          `,
-      [name, email, cryptPass]
-    );
     res.sendStatus(201);
   } catch (err) {
     res.status(500).send({
@@ -44,13 +39,13 @@ export async function signin(req, res) {
     const config = { expiresIn: 60 * 60 * 24 };
     const token = jwt.sign({ userId: user.id }, process.env.SECRET_KEY, config);
 
-    await db.query(
-      `--sql
-          INSERT INTO SESSIONS ("userId", token)
-          VALUES ($1, $2)
-        `,
-      [user.id, token]
-    );
+    // await db.query(
+    //   `--sql
+    //       INSERT INTO SESSIONS ("userId", token)
+    //       VALUES ($1, $2)
+    //     `,
+    //   [user.id, token]
+    // );
 
     res.status(200).send(token);
   } catch (err) {
@@ -70,20 +65,7 @@ export async function getUser(req, res) {
   try {
     const userData = { ...user };
 
-    const resultLinks = await db.query(
-      `--sql
-        SELECT
-          id,
-          url,
-          code AS "shortUrl", 
-          visits AS "visitCount"
-        FROM
-          links
-        WHERE "userId" = $1
-        ORDER BY id
-      `,
-      [id]
-    );
+    const resultLinks = await linksRepository.getUserLinks(id);
 
     const shortenedUrls = resultLinks.rows;
     const totalVisits = shortenedUrls.reduce(
@@ -99,22 +81,7 @@ export async function getUser(req, res) {
 
 export async function getRanking(req, res) {
   try {
-    const result = await db.query(
-      `--sql
-        SELECT 
-          users.id,
-          users.name,
-          COUNT(links) AS "linksCount",
-          COALESCE(SUM(links.visits), 0) AS "visitCount"
-        FROM 
-          users
-        LEFT JOIN
-          links ON links."userId" = users.id
-        GROUP BY users.id
-        ORDER BY "visitCount" DESC
-        LIMIT 10
-      `
-    );
+    const result = await userRepository.getRanking();
 
     const ranking = result.rows;
     res.status(200).send(ranking);

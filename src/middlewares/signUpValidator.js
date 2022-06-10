@@ -1,16 +1,10 @@
-import db from '../database/index.js';
+import { userRepository } from '../repositories/userRepository.js';
 
 export async function checkDuplicateEmail(req, res, next) {
   const { email } = req.body;
 
   try {
-    const userExists = await db.query(
-      `--sql
-        SELECT * FROM USERS
-        WHERE email = $1
-      `,
-      [email]
-    );
+    const userExists = await userRepository.getUser('email', email);
 
     if (userExists.rows.length) {
       res.status(409).send('Failed! Email is already in use');

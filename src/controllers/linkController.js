@@ -1,6 +1,6 @@
 import { nanoid } from 'nanoid';
 
-import db from '../database/index.js';
+import { linksRepository } from '../repositories/linksRepository.js';
 
 export async function createShortenUrl(req, res) {
   const { url } = req.body;
@@ -8,13 +8,7 @@ export async function createShortenUrl(req, res) {
   const code = nanoid();
 
   try {
-    await db.query(
-      `--sql
-        INSERT INTO links ("userId", url, code)
-        VALUES ($1, $2, $3)
-      `,
-      [userId, url, code]
-    );
+    await linksRepository.createShortenUrl(userId, url, code);
 
     res.status(201).send({
       shortUrl: code,
@@ -30,13 +24,7 @@ export async function createShortenUrl(req, res) {
 export async function getShortUrl(req, res) {
   const { id } = req.params;
   try {
-    const result = await db.query(
-      `--sql
-            SELECT id, code as "shortUrl", url FROM LINKS
-            WHERE id = $1
-          `,
-      [id]
-    );
+    const result = await linksRepository.getLinkById(id);
 
     const urlObj = result.rows[0];
 
@@ -58,28 +46,14 @@ export async function openShortUrl(req, res) {
   const { shortUrl } = req.params;
 
   try {
-    const result = await db.query(
-      `--sql
-            SELECT url, visits FROM LINKS
-            WHERE code = $1
-          `,
-      [shortUrl]
-    );
-
+    const result = await linksRepository.getLinkByCode(shortUrl);
     if (!result.rows.length) {
       res.status(404).send('Link not found');
       return;
     }
     const { url, visits } = result.rows[0];
 
-    await db.query(
-      `--sql
-            UPDATE LINKS
-            SET visits = $1
-            WHERE code = $2
-        `,
-      [visits + 1, shortUrl]
-    );
+    await linksRepository.updateVisitsCount(visits, shortUrl);
 
     res.redirect(url);
     return;
@@ -96,13 +70,7 @@ export async function deleteShortenUrl(req, res) {
   const { tokenData } = res.locals;
 
   try {
-    const result = await db.query(
-      `--sql
-            SELECT "userId" FROM LINKS
-            WHERE id = $1
-      `,
-      [id]
-    );
+    const result = linksRepository.getLinkById(id); //! TALVEZ DE RUIM AQUI
 
     if (!result.rows.length) {
       res.status(404).send('Link not found');
@@ -114,13 +82,7 @@ export async function deleteShortenUrl(req, res) {
       return;
     }
 
-    await db.query(
-      `--sql
-            DELETE FROM LINKS
-            WHERE id = $1
-        `,
-      [id]
-    );
+    await linksRepository.deleteLink(id);
 
     res.sendStatus(204);
   } catch (err) {
