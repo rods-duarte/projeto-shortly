@@ -1,4 +1,4 @@
-import db from '../config/dbConfig';
+import db from '../config/dbConfig.js';
 
 async function createUser(name, email, password) {
   return db.query(

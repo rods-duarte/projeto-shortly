@@ -1,4 +1,4 @@
-import db from '../config/dbConfig';
+import db from '../config/dbConfig.js';
 
 async function getUserLinks(userId) {
   return db.query(
