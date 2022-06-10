@@ -39,14 +39,6 @@ export async function signin(req, res) {
     const config = { expiresIn: 60 * 60 * 24 };
     const token = jwt.sign({ userId: user.id }, process.env.SECRET_KEY, config);
 
-    // await db.query(
-    //   `--sql
-    //       INSERT INTO SESSIONS ("userId", token)
-    //       VALUES ($1, $2)
-    //     `,
-    //   [user.id, token]
-    // );
-
     res.status(200).send(token);
   } catch (err) {
     res.status(500).send({
